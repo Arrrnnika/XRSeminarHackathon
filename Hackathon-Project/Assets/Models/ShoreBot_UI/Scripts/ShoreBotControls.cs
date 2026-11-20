@@ -1,32 +1,23 @@
-using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace ShoreBot
 {
-    // Small helpers for reading controller buttons. Bindings come from ControlsInfo.
+    // Small helpers for reading controller buttons.
+    // Which button is which (the "binding") is set per control in the ControlsInfo asset.
     public static class ShoreBotControls
     {
-        public static InputAction Button(string name, string bindings)
+        public static InputAction Button(string name, string binding)
         {
-            var action = new InputAction(name, InputActionType.Button);
-            AddBindings(action, bindings);
+            var action = new InputAction(name, InputActionType.Button, binding);
             action.Enable();
             return action;
         }
 
-        public static InputAction Stick(string name, string bindings)
+        public static InputAction Stick(string name, string binding)
         {
-            var action = new InputAction(name, InputActionType.Value, expectedControlType: "Vector2");
-            AddBindings(action, bindings);
+            var action = new InputAction(name, InputActionType.Value, binding, expectedControlType: "Vector2");
             action.Enable();
             return action;
-        }
-
-        static void AddBindings(InputAction action, string bindings)
-        {
-            if (string.IsNullOrEmpty(bindings)) return;
-            foreach (var b in bindings.Split(';'))
-                if (!string.IsNullOrWhiteSpace(b)) action.AddBinding(b.Trim());
         }
 
         public static InputAction For(ControlInfo control) =>
@@ -34,7 +25,7 @@ namespace ShoreBot
 
         public static bool IsActive(ControlInfo control, InputAction action, float stickThreshold = 0.4f) =>
             control.kind == ControlKind.Stick
-                ? action.ReadValue<Vector2>().magnitude > stickThreshold
+                ? action.ReadValue<UnityEngine.Vector2>().magnitude > stickThreshold
                 : action.IsPressed();
     }
 }
