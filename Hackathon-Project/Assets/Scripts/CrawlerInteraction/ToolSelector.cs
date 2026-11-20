@@ -47,6 +47,8 @@ public class ToolSelector : MonoBehaviour
 
     public void SetTool(ToolType tool)
     {
+        CurrentTool = tool;
+        
         if (scannerModel != null) scannerModel.SetActive(tool == ToolType.Scan);
         if (epoxyNozzleModel != null) epoxyNozzleModel.SetActive(tool == ToolType.Epoxy);
         

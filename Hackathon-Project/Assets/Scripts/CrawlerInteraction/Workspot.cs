@@ -26,12 +26,15 @@ public class WorkSpot : MonoBehaviour
     [SerializeField] private Color pendingColor = Color.white;
     [SerializeField] private Color scannedColor = Color.cyan;
     [SerializeField] private Color epoxyColor = Color.yellow;
-    [SerializeField] private Color crackColor = new Color(0.25f, 0f, 0f);
-    [SerializeField] private Color repairedColor = new Color(0.6f, 0.6f, 0.6f);
+    [SerializeField] private Color crackColor = Color.white;
+    [SerializeField] private Color repairedColor = Color.grey;
 
     [Header("Events (hook up sounds, haptics, UI…)")]
     public UnityEvent onCrackDetected;
     public UnityEvent onRepaired;
+    
+    [Header("Surface")]
+    [SerializeField] private LayerMask surfaceMask; //CrawlSurface: markers are placed onto the curved blade
 
     public SpotState State { get; private set; } = SpotState.Suspected;
     public float Progress { get; private set; } //0..1 of the current step
@@ -71,7 +74,7 @@ public class WorkSpot : MonoBehaviour
             if (Visit(_scanMarkers, _scanDone, scanRadius, scannedColor))
                 CompleteScan();
         }
-        else if (State == SpotState.Detected && tool == ToolSelector.ToolType.Epoxy && _toolArm.IsTouchingSurface)
+        else if (State == SpotState.Detected && tool == ToolSelector.ToolType.Epoxy)
         {
             if (Visit(_epoxyMarkers, _epoxyDone, epoxyRadius, epoxyColor))
                 CompleteRepair();
@@ -129,7 +132,8 @@ public class WorkSpot : MonoBehaviour
         SetActive(_epoxyMarkers, state == SpotState.Detected);
 
         crackRenderer.enabled = state != SpotState.Suspected;
-        crackRenderer.material.color = state == SpotState.Repaired ? repairedColor : crackColor;
+        if (state == SpotState.Repaired)
+            crackRenderer.material.color = repairedColor;
     }
 
     
@@ -157,16 +161,42 @@ public class WorkSpot : MonoBehaviour
     {
         int n = Mathf.Max(2, epoxyPointCount);
         var markers = new Renderer[n];
-        Transform crack = crackRenderer.transform;
+        GetCrackEnds(out Vector3 start, out Vector3 end);
 
         for (int i = 0; i < n; i++)
         {
-            //Points from one end of the crack cube to the other (cube is 1 unit long on its local X)
-            Vector3 world = crack.TransformPoint(new Vector3(Mathf.Lerp(-0.5f, 0.5f, i / (n - 1f)), 0f, 0f));
-            Vector3 local = transform.InverseTransformPoint(world) + Vector3.up * (markerSize * 0.5f);
+            Vector3 local = transform.InverseTransformPoint(Vector3.Lerp(start, end, i / (n - 1f)));
+            local.y = markerSize * 0.5f; //on the surface
             markers[i] = CreateMarker(local);
         }
         return markers;
+    }
+    
+    
+    
+    private void GetCrackEnds(out Vector3 start, out Vector3 end)
+    {
+        Transform crack = crackRenderer.transform;
+        MeshFilter filter = crackRenderer.GetComponent<MeshFilter>();
+        Bounds bounds = filter != null && filter.sharedMesh != null
+            ? filter.sharedMesh.bounds
+            : new Bounds(Vector3.zero, Vector3.one);
+
+        Vector3 bestHalf = Vector3.zero;
+        float bestLength = -1f;
+        foreach (Vector3 axis in new[] { Vector3.right, Vector3.up, Vector3.forward })
+        {
+            Vector3 half = Vector3.Scale(axis, bounds.extents);
+            float length = Vector3.ProjectOnPlane(crack.TransformVector(half), transform.up).magnitude;
+            if (length > bestLength)
+            {
+                bestLength = length;
+                bestHalf = half;
+            }
+        }
+
+        start = crack.TransformPoint(bounds.center - bestHalf);
+        end = crack.TransformPoint(bounds.center + bestHalf);
     }
 
     
@@ -177,7 +207,7 @@ public class WorkSpot : MonoBehaviour
         Destroy(marker.GetComponent<Collider>());
         marker.name = "Marker";
         marker.transform.SetParent(transform, false);
-        marker.transform.localPosition = localPosition;
+        marker.transform.localPosition = SnapToSurface(localPosition);
         marker.transform.localScale = Vector3.one * markerSize;
 
         Renderer markerRenderer = marker.GetComponent<Renderer>();
@@ -193,6 +223,18 @@ public class WorkSpot : MonoBehaviour
     {
         foreach (Renderer marker in markers)
             marker.gameObject.SetActive(active);
+    }
+    
+    
+
+//Moves a marker position onto the actual blade surface below/above it
+    private Vector3 SnapToSurface(Vector3 localPosition)
+    {
+        Vector3 up = transform.up;
+        Vector3 world = transform.TransformPoint(localPosition);
+        if (Physics.Raycast(world + up * 0.3f, -up, out RaycastHit hit, 0.6f, surfaceMask, QueryTriggerInteraction.Ignore))
+            return transform.InverseTransformPoint(hit.point + hit.normal * (markerSize * 0.5f));
+        return localPosition;
     }
     
     
