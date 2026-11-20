@@ -12,7 +12,8 @@ public class CrawlerController : MonoBehaviour
     [SerializeField] private float maxSpeed = 3f;
     [SerializeField] private float turnSpeed = 60f; //in degrees per second
     [SerializeField] private float acceleration = 2f; //how fast it speeds up but also the value for the speed of slowing down 
-
+    [SerializeField] private float deceleration = 12f;
+    
     [Header("Surface")] 
     [SerializeField] private LayerMask surfaceMask = 10;
 
@@ -34,7 +35,7 @@ public class CrawlerController : MonoBehaviour
         driveinput.action?.Enable();
     }
     
-    private void OnDisble()
+    private void OnDisable()
     {
         if (driveinput.reference == null)
         {
@@ -69,7 +70,10 @@ public class CrawlerController : MonoBehaviour
         transform.rotation = Quaternion.AngleAxis(yaw, transform.up) * transform.rotation;
         
         // Accerelation
-        _currentSpeed = Mathf.MoveTowards(_currentSpeed, input.y * maxSpeed, acceleration * Time.deltaTime);
+        float targetSpeed = input.y * maxSpeed;
+        bool braking = Mathf.Abs(targetSpeed) < Mathf.Abs(_currentSpeed) || targetSpeed * _currentSpeed < 0f;
+        float rate = braking ? deceleration : acceleration;
+        _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, rate * Time.deltaTime);
         Vector3 step = transform.forward * (_currentSpeed * Time.deltaTime);
         
         //Check if surface where we want to move to exists (or not, or if it is a slope downwards)

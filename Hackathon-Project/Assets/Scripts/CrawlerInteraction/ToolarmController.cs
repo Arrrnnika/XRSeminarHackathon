@@ -13,6 +13,8 @@ public class ToolarmController : MonoBehaviour
     [SerializeField] private Transform rightHand;
     [SerializeField] private InputActionProperty leftMoveInput; 
     [SerializeField] private InputActionProperty rightMoveInput;
+    [SerializeField] private RobotArmIK armIK; //keeps the target within the arm's reach
+
 
     [Header("Movement")] [SerializeField]
     private float motionScale = 1f; //1=proportional to hand, < 1 = more precise
@@ -92,6 +94,9 @@ public class ToolarmController : MonoBehaviour
             Vector3 wolrdDelta = xrOrigin.TransformVector(handLocal - _grabHandLocal) * motionScale;
             Vector3 robotDelta = transform.InverseTransformVector(wolrdDelta);
             _targetLocal = Clamp(_grabTargetLocal + robotDelta);
+            if (armIK != null)
+                _targetLocal = transform.InverseTransformPoint(armIK.ClampToReach(transform.TransformPoint(_targetLocal)));
+
         }
 
         // Move toolhead to target position gradually, but stay above surface
@@ -181,5 +186,11 @@ public class ToolarmController : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.matrix = transform.localToWorldMatrix;
         Gizmos.DrawWireCube((workspaceMin + workspaceMax) * 0.5f, workspaceMax - workspaceMin);
+    }
+    
+    public void SetWorkspace(Vector3 min, Vector3 max)
+    {
+        workspaceMin = min;
+        workspaceMax = max;
     }
 }
