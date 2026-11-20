@@ -960,6 +960,7 @@ GameObject:
   - component: {fileID: 2070139867}
   - component: {fileID: 2070139868}
   - component: {fileID: 2070139869}
+  - component: {fileID: 2070139870}
   m_Layer: 11
   m_Name: Crawler
   m_TagString: Untagged
@@ -1161,6 +1162,29 @@ MonoBehaviour:
     m_Reference: {fileID: 0}
   scannerModel: {fileID: 0}
   epoxyNozzleModel: {fileID: 0}
+--- !u!114 &2070139870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070139864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1ae764693c9ea146a6767f51c584b09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RobotArmIK
+  mount: {fileID: 0}
+  turret: {fileID: 0}
+  shoulder: {fileID: 0}
+  elbow: {fileID: 0}
+  wrist: {fileID: 0}
+  toolRoll: {fileID: 0}
+  toolTip: {fileID: 0}
+  target: {fileID: 0}
+  toolArm: {fileID: 0}
+  elbowUp: 1
+  toolSpinSpeed: 360
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
