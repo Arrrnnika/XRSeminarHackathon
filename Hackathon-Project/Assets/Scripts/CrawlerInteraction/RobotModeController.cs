@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ShoreBot;
 
 public class RobotModeController : MonoBehaviour
 {
@@ -39,11 +40,15 @@ public class RobotModeController : MonoBehaviour
     public void SetMode(RobotMode mode)
     {
         CurrentMode = mode;
+
         if (crawler != null)
             crawler.DriveMode = mode == RobotMode.Drive;
-        if(toolArm != null)
+        if (toolArm != null)
             toolArm.ToolModeActive = mode == RobotMode.Tool;
-        
+
+        ControlBar.SetToolMode(mode == RobotMode.Tool); 
+        InfoBar.Instance?.SetArm(mode == RobotMode.Tool); 
+
         ModeChanged?.Invoke(mode);
     }
 }

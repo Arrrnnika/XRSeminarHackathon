@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4372ff85c4976c4d9dd54a77e5351fc, type: 3}
+  m_Name: ControlsInfo
+  m_EditorClassIdentifier: Assembly-CSharp::ShoreBot.ControlsInfo
+  version: 3
+  controls:
+  - id: left_stick
+    buttonName: Left joystick
+    label: JOYSTICK
+    hand: 0
+    kind: 1
+    holdSeconds: 0
+    binding: <XRController>{LeftHand}/{Primary2DAxis}
+    action: Move & turn the robot
+    description: Push forward or back to drive the robot along the blade, left or
+      right to turn it.
+    toolModeOnly: 0
+    inBar: 1
+    inTutorial: 1
+    anchor: {x: 0.34166667, y: 0.3642857}
+    ringSize: 0.27
+  - id: a
+    buttonName: A button
+    label: A
+    hand: 1
+    kind: 0
+    holdSeconds: 0
+    binding: <XRController>{RightHand}/{PrimaryButton}
+    action: Switch Navigation / Tool mode
+    description: Switches between Navigation mode (drive the robot) and Tool mode
+      (use the arm). Press A now to go into Tool mode.
+    toolModeOnly: 0
+    inBar: 1
+    inTutorial: 1
+    anchor: {x: 0.53333336, y: 0.55}
+    ringSize: 0.21
+  - id: x
+    buttonName: X button
+    label: X
+    hand: 0
+    kind: 0
+    holdSeconds: 0
+    binding: <XRController>{LeftHand}/{PrimaryButton}
+    action: 'Switch tool: Scanner / Epoxy filler'
+    description: Swaps the tool on the arm between the Scanner and the Epoxy filler.
+    toolModeOnly: 0
+    inBar: 1
+    inTutorial: 1
+    anchor: {x: 0.46666667, y: 0.55}
+    ringSize: 0.21
+  - id: b
+    buttonName: B button
+    label: B
+    hand: 1
+    kind: 2
+    holdSeconds: 2
+    binding: <XRController>{RightHand}/{SecondaryButton}
+    action: 'Hold 2 s: recenter the view'
+    description: Hold B for 2 seconds to recenter your view straight ahead.
+    toolModeOnly: 0
+    inBar: 1
+    inTutorial: 1
+    anchor: {x: 0.35833332, y: 0.35714287}
+    ringSize: 0.21
+  - id: left_grip
+    buttonName: Left grip
+    label: GRIP
+    hand: 0
+    kind: 2
+    holdSeconds: 0
+    binding: <XRController>{LeftHand}/{GripButton}
+    action: 'Hold + move your hand: move the tool arm'
+    description: 
+    toolModeOnly: 1
+    inBar: 1
+    inTutorial: 0
+    anchor: {x: 0.625, y: 0.79285717}
+    ringSize: 0.22
+  - id: right_grip
+    buttonName: Right grip
+    label: GRIP
+    hand: 1
+    kind: 2
+    holdSeconds: 0
+    binding: <XRController>{RightHand}/{GripButton}
+    action: 'Hold + move your hand: move the tool arm'
+    description: 
+    toolModeOnly: 1
+    inBar: 1
+    inTutorial: 0
+    anchor: {x: 0.375, y: 0.79285717}
+    ringSize: 0.22
