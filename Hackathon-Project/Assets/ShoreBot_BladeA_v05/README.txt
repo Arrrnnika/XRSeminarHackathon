@@ -1,0 +1,1 @@
+ShoreBot Blade A v05 environment. Extract the ZIP and copy this complete folder directly into the Unity project's Assets folder. Then run Tools > ShoreBot > Blade A v05 > Create or refresh test scenes. The complete instructions are in START_HERE.md in the ZIP.
