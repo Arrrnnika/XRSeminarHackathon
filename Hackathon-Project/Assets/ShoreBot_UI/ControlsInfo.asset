@@ -29,6 +29,21 @@ MonoBehaviour:
     inTutorial: 1
     anchor: {x: 0.34166667, y: 0.3642857}
     ringSize: 0.27
+  - id: right_stick
+    buttonName: Right joystick
+    label: JOYSTICK
+    hand: 1
+    kind: 1
+    holdSeconds: 0
+    binding: <XRController>{RightHand}/{Primary2DAxis}
+    action: Move & turn the robot
+    description: Push forward or back to drive the robot along the blade, left or
+      right to turn it.
+    toolModeOnly: 0
+    inBar: 1
+    inTutorial: 1
+    anchor: {x: 0.658, y: 0.364}
+    ringSize: 0.27
   - id: a
     buttonName: A button
     label: A
@@ -65,7 +80,7 @@ MonoBehaviour:
     kind: 2
     holdSeconds: 2
     binding: <XRController>{RightHand}/{SecondaryButton}
-    action: 'Hold 2 s: recenter the view'
+    action: 'Hold: realign view with the robot'
     description: Hold B for 2 seconds to recenter your view straight ahead.
     toolModeOnly: 0
     inBar: 1

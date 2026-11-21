@@ -26,7 +26,8 @@ public class WorkSpot : MonoBehaviour
     [SerializeField] private Color pendingColor = Color.white;
     [SerializeField] private Color scannedColor = Color.cyan;
     [SerializeField] private Color epoxyColor = Color.yellow;
-    [SerializeField] private Color crackColor = Color.white;
+    [SerializeField] private Color crackColor = Color.darkGray;
+    [SerializeField] private Color suspectedCrackColor = Color.lightGray;
     [SerializeField] private Color repairedColor = Color.grey;
 
     [Header("Events (hook up sounds, haptics, UI…)")]
@@ -131,8 +132,12 @@ public class WorkSpot : MonoBehaviour
         SetActive(_scanMarkers, state == SpotState.Suspected);
         SetActive(_epoxyMarkers, state == SpotState.Detected);
 
-        crackRenderer.enabled = state != SpotState.Suspected;
-        if (state == SpotState.Repaired)
+        crackRenderer.enabled = true;
+        if (state == SpotState.Suspected)
+            crackRenderer.material.color = suspectedCrackColor;
+        else if (state == SpotState.Detected)
+            crackRenderer.material.color = crackColor;
+        else
             crackRenderer.material.color = repairedColor;
     }
 

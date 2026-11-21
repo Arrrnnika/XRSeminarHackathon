@@ -9,15 +9,16 @@ namespace ShoreBot.EditorTools
 {
     // Adds the ShoreBot user-experience layer to the open scene:
     //   - two control panels fixed low on the left and right of the view: a drawing of each controller
-    //     with a line from every button to what it does, plus a NAVIGATION / TOOL MODE badge,
-    //   - the wrist display on the left controller (tool, arm status, progress, hint).
-    // Needs an XR Origin in the scene (Main Camera, Left Controller, Right Controller).
-    // Safe to run again: it replaces its own old UI objects. Button texts live in ControlsInfo.
+    //     with a line from every button to what it does, plus a NAVIGATION / TOOL MODE badge.
+    // Everything is put on the "HUD" layer, so a URP "Render Objects" feature can draw it on top of the world.
+    // Needs an XR Origin in the scene (Main Camera).
+    // Safe to run again: it replaces its own old UI objects (including an old wrist display). Button texts live in ControlsInfo.
     public static class ShoreBotUIInstaller
     {
         const string Root = "Assets/ShoreBot_UI";
         const string InfoPath = Root + "/ControlsInfo.asset";
         const string IconFolder = Root + "/Icons";
+        const string HudLayer = "HUD";
         static readonly string[] UIObjects = { "ShoreBot_ControlBar", "ShoreBot_TutorialPanel", "ShoreBot_WristInfo", "ShoreBot_Systems", "ShoreBot_UISystems" };
 
         static readonly Color Navy = Hex("1B1A33", 1f);
@@ -42,11 +43,10 @@ namespace ShoreBot.EditorTools
             }
 
             Camera cam = Camera.main;
-            Transform left = FindInScene("Left Controller");
-            if (cam == null || left == null)
+            if (cam == null)
             {
                 EditorUtility.DisplayDialog("ShoreBot",
-                    "Couldn't find the XR Origin (Main Camera and Left Controller) in the open scene. " +
+                    "Couldn't find the Main Camera of the XR Origin in the open scene. " +
                     "Add the XR Origin (XR Rig) from the XR Interaction Toolkit Starter Assets first.", "OK");
                 return;
             }
@@ -54,36 +54,15 @@ namespace ShoreBot.EditorTools
             RemoveOldUI();
             var info = LoadOrCreateControlsInfo();
 
-            // ---------- Wrist display (left controller) ----------
-            var wrist = WorldCanvas("ShoreBot_WristInfo", left, new Vector2(380, 200), 0.0005f);
-            wrist.transform.localPosition = new Vector3(0f, 0.06f, -0.09f);
-            wrist.transform.localRotation = Quaternion.Euler(45f, 0f, 0f);
-            Panel("Background", wrist.transform, Navy, Stretch());
-            var infoBar = wrist.gameObject.AddComponent<InfoBar>();
-            infoBar.toolText = Label("Tool", wrist.transform, "TOOL  [placeholder]", 30, Yellow, FontStyles.Bold, TextAlignmentOptions.Left, 20, 14, 340, 40);
-            infoBar.armText = Label("Arm", wrist.transform, "ARM STOPPED", 22, Lavender, FontStyles.Bold, TextAlignmentOptions.Left, 20, 58, 340, 30);
-            var progress = Group("Progress", wrist.transform, 20, 94, 340, 50);
-            infoBar.progressGroup = progress;
-            infoBar.progressLabel = Label("Label", progress.transform, "Progress 0%", 20, Color.white, FontStyles.Normal, TextAlignmentOptions.Left, 0, 0, 340, 26);
-            var barBg = Panel("Bar", progress.transform, NavySolid, null);
-            TopLeft(barBg.rectTransform, 0, 30, 340, 14);
-            var fill = Panel("Fill", barBg.transform, Green, null);
-            fill.rectTransform.anchorMin = Vector2.zero;
-            fill.rectTransform.anchorMax = new Vector2(0f, 1f);
-            fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
-            infoBar.progressFill = fill.rectTransform;
-            infoBar.hintText = Label("Hint", wrist.transform, "", 20, Lavender, FontStyles.Normal, TextAlignmentOptions.Left, 20, 158, 340, 30);
-            infoBar.armFollowing = Green;
-            infoBar.armStopped = Lavender;
-
             // ---------- Control panels, low on the left and right of the view ----------
-            BuildControlBar(cam.transform, info);
+            var bar = BuildControlBar(cam.transform, info);
+            SetLayer(bar);
 
             var scene = EditorSceneManager.GetActiveScene();
             EditorSceneManager.MarkSceneDirty(scene);
             if (!string.IsNullOrEmpty(scene.path)) EditorSceneManager.SaveScene(scene);
             Selection.activeObject = info;
-            Debug.Log("ShoreBot: control panels and wrist display added. Edit button texts in Assets/ShoreBot_UI/ControlsInfo.");
+            Debug.Log("ShoreBot: control panels added. Edit button texts in Assets/ShoreBot_UI/ControlsInfo.");
         }
 
         static void RemoveOldUI()
@@ -100,10 +79,12 @@ namespace ShoreBot.EditorTools
         const float GroupW = 600, BarH = 300, DrawW = 190, DrawH = 222;
         const float PanelScale = 0.0007f;     // canvas pixels to metres (600 px = 0.42 m)
         const float PanelDistance = 0.9f;     // metres from the eyes
-        const float PanelHeight = -0.25f;     // metres below eye height
-        const float PanelAngle = 26f;         // degrees to the left / right of straight ahead
-
-        static void BuildControlBar(Transform head, ControlsInfo info)
+        const float PanelHeight = -0.45f;     // metres below eye height
+        const float PanelAngle = 22f;         // degrees to the left / right of straight ahead
+        const float BadgeHeight = 0.2f;       // metres above eye height for the mode badge
+        
+        
+        static GameObject BuildControlBar(Transform head, ControlsInfo info)
         {
             var root = new GameObject("ShoreBot_ControlBar");
             root.transform.SetParent(head, false);
@@ -121,12 +102,13 @@ namespace ShoreBot.EditorTools
 
             // Small mode badge, low in the middle.
             var badge = WorldCanvas("ModeBadge", root.transform, new Vector2(300, 52), PanelScale);
-            badge.transform.localPosition = new Vector3(0f, PanelHeight - 0.07f, PanelDistance);
+            badge.transform.localPosition = new Vector3(0f, BadgeHeight, PanelDistance);
             badge.transform.localRotation = Quaternion.LookRotation(badge.transform.localPosition);   // faces the eyes
             badge.sortingOrder = 10;
             cb.modeBadge = Panel("Badge", badge.transform, DotTodo, Stretch());
             cb.modeText = Label("ModeText", cb.modeBadge.transform, "NAVIGATION MODE", 24, Color.white, FontStyles.Bold,
                                 TextAlignmentOptions.Center, 0, 0, 300, 52);
+            return root;
         }
 
         static Canvas HandCanvas(Transform parent, string name, float yaw)
@@ -291,6 +273,19 @@ namespace ShoreBot.EditorTools
 
         // ---------- helpers ----------
 
+        // Puts an object and all its children on the HUD layer (drawn on top of the world by the URP Render Objects feature).
+        static void SetLayer(GameObject go)
+        {
+            int layer = LayerMask.NameToLayer(HudLayer);
+            if (layer < 0)
+            {
+                Debug.LogWarning($"ShoreBot: there is no '{HudLayer}' layer. Add it under Project Settings > Tags and Layers, then run the menu again.");
+                return;
+            }
+            foreach (var t in go.GetComponentsInChildren<Transform>(true))
+                t.gameObject.layer = layer;
+        }
+
         static Canvas WorldCanvas(string name, Transform parent, Vector2 size, float scale)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Canvas));
@@ -361,18 +356,6 @@ namespace ShoreBot.EditorTools
             rt.pivot = new Vector2(0f, 1f);
             rt.anchoredPosition = new Vector2(left, -top);
             rt.sizeDelta = new Vector2(width, height);
-        }
-
-        static Transform FindInScene(string name)
-        {
-            Transform loose = null;
-            foreach (var root in EditorSceneManager.GetActiveScene().GetRootGameObjects())
-                foreach (var t in root.GetComponentsInChildren<Transform>(true))
-                {
-                    if (t.name == name) return t;
-                    if (loose == null && t.name.Contains(name)) loose = t;
-                }
-            return loose;
         }
 
         static Color Hex(string hex, float alpha = 1f)

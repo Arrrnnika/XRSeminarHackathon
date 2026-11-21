@@ -21,7 +21,8 @@ public class CrawlerController : MonoBehaviour
     [SerializeField] private float probeHeight = 0.5f; //from what height the raycast/probe starts (used for bumps and concave curves)
     [SerializeField] private float probeDepth = 0.3f; // how far the the probe reaches beneath the current surface height (forconvex curves)
     [SerializeField] private float alignSpeed = 12f; //how fast the crawler aligsn/tilts to match the surface angle/slope
-
+    [SerializeField] private Transform cameraMount;
+    
     public bool DriveMode { get; set; } = true;
     public bool IsOnSurface { get; private set; }
     public float CurrentSpeed => _currentSpeed;
@@ -75,16 +76,24 @@ public class CrawlerController : MonoBehaviour
         float rate = braking ? deceleration : acceleration;
         _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, rate * Time.deltaTime);
         Vector3 step = transform.forward * (_currentSpeed * Time.deltaTime);
+
+        Vector3 next = transform.position + step;
+
         
-        //Check if surface where we want to move to exists (or not, or if it is a slope downwards)
-        if (Probe(transform.position + step, out RaycastHit hit)) //so we have a surface where we want to move
+        Vector3 frontOffset = Vector3.ProjectOnPlane(cameraMount.position - transform.position, transform.up);
+        Vector3 edgeOffset = _currentSpeed >= 0f ? frontOffset : -frontOffset;
+
+        bool moving = !Mathf.Approximately(_currentSpeed, 0f);
+        bool edgeOk = !moving || Probe(next + edgeOffset, out _);
+
+        if (edgeOk && Probe(next, out RaycastHit hit))
         {
             ApplySurface(hit, false);
         }
-        else //either there is no surface, or the surface is too low or too high for us to move onto it 
+        else //edge reached or no surface: stop, but stay aligned to the surface we're standing on
         {
-            _currentSpeed = 0f; //no movement allowed (to not fall off)
-            if(Probe(transform.position, out hit))
+            _currentSpeed = 0f;
+            if (Probe(transform.position, out hit))
                 ApplySurface(hit, false);
             else
                 IsOnSurface = false;
